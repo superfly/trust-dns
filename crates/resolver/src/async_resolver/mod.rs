@@ -163,6 +163,7 @@ impl AsyncResolver {
         config: ResolverConfig,
         options: ResolverOpts,
     ) -> (Self, impl Future<Output = ()> + Send) {
+        trace!("AsyncResolver::new");
         let lru = DnsLru::new(options.cache_size, dns_lru::TtlConfig::from_opts(&options));
         let lru = Arc::new(Mutex::new(lru));
 
@@ -199,7 +200,9 @@ impl AsyncResolver {
     /// This will use `/etc/resolv.conf` on Unix OSes and the registry on Windows.
     #[cfg(any(unix, target_os = "windows"))]
     pub fn from_system_conf() -> ResolveResult<(Self, impl Future<Output = ()>)> {
+        trace!("AsyncResolver::from_system_conf");
         let (config, options) = super::system_conf::read_system_conf()?;
+        trace!("AsyncResolver::from_system_conf => got config and options");
         Ok(Self::new(config, options))
     }
 

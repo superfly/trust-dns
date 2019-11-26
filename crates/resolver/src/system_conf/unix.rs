@@ -27,23 +27,28 @@ use crate::proto::rr::Name;
 const DEFAULT_PORT: u16 = 53;
 
 pub fn read_system_conf() -> io::Result<(ResolverConfig, ResolverOpts)> {
+    trace!("read_system_conf");
     Ok(read_resolv_conf("/etc/resolv.conf")?)
 }
 
 fn read_resolv_conf<P: AsRef<Path>>(path: P) -> io::Result<(ResolverConfig, ResolverOpts)> {
+    trace!("read_resolv_conf");
     let mut data = String::new();
     let mut file = File::open(path)?;
     file.read_to_string(&mut data)?;
+    trace!("read_resolv_conf => read to string");
     parse_resolv_conf(&data)
 }
 
 fn parse_resolv_conf<T: AsRef<[u8]>>(data: T) -> io::Result<(ResolverConfig, ResolverOpts)> {
+    trace!("parse_resolv_conf");
     let parsed_conf = resolv_conf::Config::parse(&data).map_err(|e| {
         io::Error::new(
             io::ErrorKind::Other,
             format!("Error parsing resolv.conf: {:?}", e),
         )
     })?;
+    trace!("parse_resolv_conf => parsed");
     into_resolver_config(parsed_conf)
 }
 
@@ -51,6 +56,7 @@ fn parse_resolv_conf<T: AsRef<[u8]>>(data: T) -> io::Result<(ResolverConfig, Res
 fn into_resolver_config(
     parsed_config: resolv_conf::Config,
 ) -> io::Result<(ResolverConfig, ResolverOpts)> {
+    trace!("into_resolver_config");
     let domain = if let Some(domain) = parsed_config.get_system_domain() {
         Some(Name::from_str(domain.as_str())?)
     } else {
